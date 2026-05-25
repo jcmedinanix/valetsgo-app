@@ -37,5 +37,7 @@ jobs:
           script: |
             cd ~/valetsgo-app
             docker-compose pull
+            docker-compose down
+            docker container prune -f  
             docker-compose up -d
             docker image prune -f
