@@ -1,0 +1,12 @@
+{
+  "name": "valetsgo-app",
+  "version": "1.0.0",
+  "description": "Aplicación de demostración ValetsGo S.A.C.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
