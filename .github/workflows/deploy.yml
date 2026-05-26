@@ -37,8 +37,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/valetsgo-app
+            curl -o docker-compose.yml https://raw.githubusercontent.com/jcmedinanix/valetsgo-app/main/docker-compose.yml
             docker-compose pull
             docker-compose down
-            docker container prune -f  
+            docker container prune -f
             docker-compose up -d
             docker image prune -f
