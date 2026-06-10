@@ -45,7 +45,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // --- Frontend protegido ---
-app.use('/', authMiddleware, express.static(path.join(__dirname, 'public')));
+
 
 // --- Health check (público, para Docker y CI/CD) ---
 
