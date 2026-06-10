@@ -1,14 +1,11 @@
 name: CI/CD - Build and Deploy ValetsGo
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout código
         uses: actions/checkout@v3
@@ -19,7 +16,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build y push imagen Docker
+      - name: Build y push imagen app
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -28,6 +25,16 @@ jobs:
           tags: |
             jcmedinanix/valetsgo-app:latest
             jcmedinanix/valetsgo-app:${{ github.sha }}
+
+      - name: Build y push imagen dashboard
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dashboard
+          push: true
+          no-cache: true
+          tags: |
+            jcmedinanix/valetsgo-dashboard:latest
+            jcmedinanix/valetsgo-dashboard:${{ github.sha }}
 
       - name: Deploy en VM via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -38,6 +45,7 @@ jobs:
           script: |
             cd ~/valetsgo-app
             curl -o docker-compose.yml https://raw.githubusercontent.com/jcmedinanix/valetsgo-app/main/docker-compose.yml
+            curl -o nginx.conf https://raw.githubusercontent.com/jcmedinanix/valetsgo-app/main/nginx.conf
             docker-compose pull
             docker-compose down
             docker container prune -f

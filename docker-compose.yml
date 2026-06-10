@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   valetsgo-app:
     image: jcmedinanix/valetsgo-app:latest
@@ -9,7 +8,7 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-  
+
   nginx:
     image: nginx:alpine
     container_name: valetsgo-nginx
@@ -20,6 +19,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - valetsgo-app
+      - dashboard
 
   uptime-kuma:
     image: louislam/uptime-kuma:1
@@ -30,5 +30,24 @@ services:
     volumes:
       - uptime-kuma-data:/app/data
 
+  dashboard:
+    image: jcmedinanix/valetsgo-dashboard:latest
+    container_name: valetsgo-dashboard
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - SESSION_SECRET=valetsgo2026secret
+      - DASHBOARD_USER=admin
+      - DASHBOARD_PASS=valetsgo2026
+      - DOCKER_IMAGE=jcmedinanix/valetsgo-app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - dashboard-data:/app/data
+    depends_on:
+      - valetsgo-app
+
 volumes:
   uptime-kuma-data:
+  dashboard-data:
