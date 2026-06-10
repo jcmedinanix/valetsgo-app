@@ -10,16 +10,16 @@ router.post('/login', (req, res) => {
 
   if (username === validUser && password === validPass) {
     req.session.user = username;
-    return res.redirect('/');
+    return res.redirect('/dashboard');
   }
 
-  res.redirect('/login.html?error=1');
+  res.redirect('/dashboard/login.html?error=1');
 });
 
 // POST /auth/logout
 router.post('/logout', (req, res) => {
   req.session.destroy();
-  res.redirect('/login.html');
+  res.redirect('/dashboard/login.html');
 });
 
 module.exports = router;

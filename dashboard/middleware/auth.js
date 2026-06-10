@@ -9,5 +9,5 @@ module.exports = (req, res, next) => {
     return res.status(401).json({ error: 'No autorizado' });
   }
   // Si es una página, redirige al login
-  res.redirect('/login.html');
+  res.redirect('/dashboard/login.html');
 };
