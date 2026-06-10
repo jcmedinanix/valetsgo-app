@@ -28,8 +28,8 @@ app.use(session({
 
 // --- Archivos estáticos (frontend) ---
 // login.html es público, el resto requiere sesión
-app.use('/login.html', express.static(path.join(__dirname, 'public')));
-app.use('/style.css',  express.static(path.join(__dirname, 'public')));
+app.use('/dashboard', express.static(path.join(__dirname, 'public')));
+
 
 // --- Rutas de autenticación (públicas) ---
 app.use('/auth', authRouter);
