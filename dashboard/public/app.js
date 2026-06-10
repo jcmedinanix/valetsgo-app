@@ -24,7 +24,7 @@ async function loadContainers() {
         ? `<span class="badge badge-green">● running</span>`
         : `<span class="badge badge-red">● ${c.state}</span>`;
       logSelect.innerHTML        += `<option value="${c.id}">${c.name}</option>`;
-      rollbackContainer.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      if (c.name === "valetsgo-app") rollbackContainer.innerHTML += `<option value="${c.name}">${c.name}</option>`;
       return `<tr>
         <td><strong>${c.name}</strong></td>
         <td style="font-size:0.8rem;color:#6b7280">${c.image}</td>
