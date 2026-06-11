@@ -12,6 +12,7 @@ const historyRouter    = require('./routes/history');
 const authRouter       = require('./routes/auth');
 
 const app  = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 4000;
 
 // --- Middlewares globales ---
@@ -23,7 +24,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'secreto',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 8 } // 8 horas
+  cookie: { maxAge: 1000 * 60 * 60 * 8, path: '/' } // 8 horas
 }));
 
 // --- Archivos estáticos (frontend) ---
