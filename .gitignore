@@ -1,3 +1,9 @@
 node_modules/
 .env
 *.log
+
+# Terraform — credenciales locales
+infraestructura/**/terraform.tfvars
+infraestructura/**/.terraform/
+infraestructura/**/terraform.tfstate
+infraestructura/**/terraform.tfstate.backup
