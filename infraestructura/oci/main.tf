@@ -103,6 +103,12 @@ resource "oci_core_instance" "valetsgo_vm" {
   compartment_id      = var.compartment_id
   availability_domain = var.availability_domain
   shape = "VM.Standard.E2.1.Micro"
+  #shape = "VM.Standard.A1.Flex"
+
+  #shape_config {
+  #  ocpus         = var.instance_ocpus
+  #  memory_in_gbs = var.instance_memory_gb
+  #}
 
   display_name        = "valetsgo-server"
 
