@@ -274,6 +274,7 @@ echo ""
 success "Servidor listo"
 echo ""
 
+
 # =============================================================
 # PASO 7 — Configurar secrets de GitHub
 # =============================================================
@@ -284,7 +285,6 @@ echo ""
 echo "  Necesitamos configurar 5 secrets en tu repositorio de GitHub"
 echo "  para que el pipeline CI/CD pueda desplegar automáticamente."
 echo ""
-
 ask "Tu usuario de GitHub (ej: jcmedinanix):"
 read -r GH_USER
 ask "Nombre del repositorio (ej: valetsgo-app):"
@@ -292,28 +292,34 @@ read -r GH_REPO
 ask "Token de GitHub con permisos 'repo' y 'workflow' (ghp_...):"
 read -rs GH_TOKEN
 echo ""
+if [ -z "$GH_TOKEN" ]; then
+  error "Token de GitHub vacío. Ejecuta el script de nuevo."
+fi
+success "Token de GitHub recibido"
 ask "Tu usuario de Docker Hub:"
 read -r DH_USER
 ask "Token de Docker Hub (Account Settings → Security → New Access Token):"
 read -rs DH_TOKEN
 echo ""
-
+if [ -z "$DH_TOKEN" ]; then
+  error "Token de Docker Hub vacío. Ejecuta el script de nuevo."
+fi
+success "Token de Docker Hub recibido"
 # Función para configurar un secret en GitHub via API
 set_github_secret() {
   local SECRET_NAME=$1
   local SECRET_VALUE=$2
-
   # Obtener la public key del repo para cifrar el secret
   local KEY_RESPONSE
   KEY_RESPONSE=$(curl -s \
     -H "Authorization: token $GH_TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
     "https://api.github.com/repos/$GH_USER/$GH_REPO/actions/secrets/public-key")
-
   local KEY_ID
   KEY_ID=$(echo "$KEY_RESPONSE" | jq -r '.key_id')
   local PUBLIC_KEY
   PUBLIC_KEY=$(echo "$KEY_RESPONSE" | jq -r '.key')
+
 
   # Cifrar el secret con la public key del repo usando Python
   local ENCRYPTED
@@ -365,11 +371,11 @@ echo ""
 # Leer la clave privada SSH
 SSH_PRIVATE_KEY=$(cat "${DEFAULT_KEY}")
 
-set_github_secret "DOCKERHUB_USERNAME" "$DH_USER"
-set_github_secret "DOCKERHUB_TOKEN"    "$DH_TOKEN"
-set_github_secret "SSH_HOST"           "$SERVER_IP"
-set_github_secret "SSH_USER"           "ubuntu"
-set_github_secret "SSH_KEY"            "$SSH_PRIVATE_KEY"
+set_github_secret "DOCKERHUB_USERNAME" "$DH_USER"         || true
+set_github_secret "DOCKERHUB_TOKEN"    "$DH_TOKEN"        || true
+set_github_secret "SSH_HOST"           "$SERVER_IP"       || true
+set_github_secret "SSH_USER"           "ubuntu"           || true
+set_github_secret "SSH_KEY"            "$SSH_PRIVATE_KEY" || true
 
 echo ""
 
