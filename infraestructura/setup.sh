@@ -369,7 +369,7 @@ info "Configurando secrets en $GH_USER/$GH_REPO..."
 echo ""
 
 # Leer la clave privada SSH
-SSH_PRIVATE_KEY=$(cat "${DEFAULT_KEY}")
+SSH_PRIVATE_KEY=$(cat "${DEFAULT_KEY}" | base64 -w 0)
 
 set_github_secret "DOCKERHUB_USERNAME" "$DH_USER"         || true
 set_github_secret "DOCKERHUB_TOKEN"    "$DH_TOKEN"        || true
