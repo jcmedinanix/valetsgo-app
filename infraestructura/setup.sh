@@ -4,6 +4,7 @@
 # Soporta: OCI (Always Free) | AWS (Free Tier) | GCP (Always Free)
 # =============================================================
 
+
 set -e
 
 # --- Colores ---
@@ -20,6 +21,13 @@ success() { echo -e "${GREEN}[OK]${NC} $1"; }
 warn()    { echo -e "${YELLOW}[AVISO]${NC} $1"; }
 error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 ask()     { echo -e "${CYAN}[?]${NC} $1"; }
+
+# --- Verificar que no se ejecuta como root ---
+if [ "$EUID" -eq 0 ]; then
+  error "No ejecutes este script como root. Usa tu usuario normal: bash setup.sh"
+fi
+
+
 
 # --- Banner ---
 clear
@@ -59,6 +67,7 @@ echo "  ¿En qué nube deseas desplegar el servidor?"
 echo "  1) OCI  — Oracle Cloud Infrastructure (Always Free, sin límite de tiempo)"
 echo "  2) AWS  — Amazon Web Services         (Free Tier, 12 meses)"
 echo "  3) GCP  — Google Cloud Platform       (Always Free, sin límite de tiempo)"
+echo "  4) Salir"
 echo -e "${CYAN}══════════════════════════════════════════════${NC}"
 ask "Ingresa el número de tu elección [1-3]:"
 read -r CLOUD_CHOICE
@@ -67,6 +76,7 @@ case $CLOUD_CHOICE in
   1) CLOUD="oci"   CLOUD_NAME="Oracle Cloud Infrastructure" ;;
   2) CLOUD="aws"   CLOUD_NAME="Amazon Web Services" ;;
   3) CLOUD="gcp"   CLOUD_NAME="Google Cloud Platform" ;;
+  4) info "Saliendo del wizard. ¡Hasta luego!"; exit 0 ;;
   *) error "Opción inválida. Ejecuta el script de nuevo." ;;
 esac
 
@@ -366,12 +376,24 @@ echo ""
 # =============================================================
 # PASO 8 — Preparar el servidor
 # =============================================================
-info "Preparando carpeta de trabajo en el servidor..."
+info "Esperando que el servidor acepte conexiones SSH..."
+until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" "echo ok" 2>/dev/null; do
+  echo -ne "  Reintentando conexion SSH...\r"
+  sleep 5
+done
+success "Servidor accesible por SSH"
 
-ssh -o StrictHostKeyChecking=no -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" \
-  "mkdir -p ~/valetsgo-app" 2>/dev/null && \
-  success "Carpeta ~/valetsgo-app creada en el servidor" || \
-  warn "No se pudo conectar al servidor aún — créala manualmente: mkdir ~/valetsgo-app"
+info "Creando carpeta y levantando contenedores en el servidor..."
+ssh -o StrictHostKeyChecking=no -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" bash << 'REMOTE'
+  mkdir -p ~/valetsgo-app
+  cd ~/valetsgo-app
+  curl -o docker-compose.yml https://raw.githubusercontent.com/jcmedinanix/valetsgo-app/main/docker-compose.yml
+  curl -o nginx.conf https://raw.githubusercontent.com/jcmedinanix/valetsgo-app/main/nginx.conf
+  docker-compose pull
+  docker-compose up -d
+REMOTE
+success "Contenedores levantados correctamente"
+
 
 echo ""
 
