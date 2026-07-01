@@ -389,12 +389,12 @@ until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubun
 done
 success "Servidor accesible por SSH"
 
-info "Esperando que Docker Compose este listo en el servidor..."
-until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" "command -v docker-compose" 2>/dev/null; do
-  echo -ne "  Esperando Docker Compose...\r"
+info "Esperando que Docker este listo en el servidor..."
+until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" "docker info > /dev/null 2>&1" 2>/dev/null; do
+  echo -ne "  Esperando Docker daemon...\r"
   sleep 10
 done
-success "Docker Compose listo"
+success "Docker listo"
 
 info "Creando carpeta y levantando contenedores en el servidor..."
 ssh -o StrictHostKeyChecking=no -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" bash << 'REMOTE'
