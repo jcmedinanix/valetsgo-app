@@ -389,6 +389,13 @@ until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubun
 done
 success "Servidor accesible por SSH"
 
+info "Esperando que Docker Compose este listo en el servidor..."
+until ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" "command -v docker-compose" 2>/dev/null; do
+  echo -ne "  Esperando Docker Compose...\r"
+  sleep 10
+done
+success "Docker Compose listo"
+
 info "Creando carpeta y levantando contenedores en el servidor..."
 ssh -o StrictHostKeyChecking=no -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" bash << 'REMOTE'
   mkdir -p ~/valetsgo-app
@@ -399,7 +406,6 @@ ssh -o StrictHostKeyChecking=no -i "$DEFAULT_KEY" ubuntu@"$SERVER_IP" bash << 'R
   docker-compose up -d
 REMOTE
 success "Contenedores levantados correctamente"
-
 
 echo ""
 
