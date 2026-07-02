@@ -48,30 +48,45 @@ resource "oci_core_security_list" "valetsgo_sl" {
     destination = "0.0.0.0/0"
     protocol    = "all"
   }
-  ingress_security_rules {
+ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 22   max = 22   }
+    tcp_options {
+      min = 22
+      max = 22
+    }
   }
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 80   max = 80   }
+    tcp_options {
+      min = 80
+      max = 80
+    }
   }
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 443  max = 443  }
+    tcp_options {
+      min = 443
+      max = 443
+    }
   }
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 3001 max = 3001 }
+    tcp_options {
+      min = 3001
+      max = 3001
+    }
   }
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options { min = 4000 max = 4000 }
+    tcp_options {
+      min = 4000
+      max = 4000
+    }
   }
 }
 
