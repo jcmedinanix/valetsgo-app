@@ -184,6 +184,15 @@ case $CLOUD in
         ;;
       3)
         echo ""
+        warn "ADVERTENCIA: Este servidor generará costos reales en tu cuenta OCI."
+        warn "Asegúrate de tener una cuenta paid y fondos disponibles antes de continuar."
+        ask "¿Confirmas que entiendes que esto generará costos? [s/n]:"
+        read -r COST_CONFIRM
+        if [[ ! "$COST_CONFIRM" =~ ^[Ss]$ ]]; then
+          info "Operación cancelada. Elige opción 1 o 2 para usar el tier gratuito."
+          exit 0
+        fi
+        echo ""
         echo "  Shapes disponibles en OCI (con costo):"
         echo "  → VM.Standard.E4.Flex  (hasta 64 OCPU, 1 TB RAM)"
         echo "  → VM.Standard.E5.Flex  (hasta 94 OCPU, 1.4 TB RAM)"
@@ -197,7 +206,6 @@ case $CLOUD in
         read -r OCI_MEMORY
         ask "Tamaño del disco en GB (ej: 500):"
         read -r OCI_DISK
-        warn "Este servidor generará costos en tu cuenta OCI."
         ;;
       *)
         OCI_SHAPE="VM.Standard.E2.1.Micro"
