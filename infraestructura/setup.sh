@@ -172,14 +172,14 @@ case $CLOUD in
         OCI_SHAPE="VM.Standard.E2.1.Micro"
         OCI_OCPUS=1
         OCI_MEMORY=1
-        OCI_DISK=47
+        OCI_DISK=50
         success "Servidor: VM.Standard.E2.1.Micro — Always Free"
         ;;
       2)
         OCI_SHAPE="VM.Standard.A1.Flex"
         OCI_OCPUS=2
         OCI_MEMORY=4
-        OCI_DISK=47
+        OCI_DISK=50
         success "Servidor: VM.Standard.A1.Flex — Always Free"
         ;;
       3)

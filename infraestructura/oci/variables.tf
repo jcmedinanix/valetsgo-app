@@ -49,5 +49,5 @@ variable "instance_memory_gb" {
 variable "boot_volume_size_gb" {
   description = "Tamaño del disco de arranque en GB"
   type        = number
-  default     = 47
+  default     = 50
 }
