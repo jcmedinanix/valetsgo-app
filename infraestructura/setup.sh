@@ -362,47 +362,42 @@ if [ -z "$DH_TOKEN" ]; then
 fi
 success "Token de Docker Hub recibido"
 # Función para configurar un secret en GitHub via API
+
 set_github_secret() {
   local SECRET_NAME=$1
   local SECRET_VALUE=$2
+
   # Obtener la public key del repo para cifrar el secret
   local KEY_RESPONSE
   KEY_RESPONSE=$(curl -s \
     -H "Authorization: token $GH_TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
     "https://api.github.com/repos/$GH_USER/$GH_REPO/actions/secrets/public-key")
+
   local KEY_ID
   KEY_ID=$(echo "$KEY_RESPONSE" | jq -r '.key_id')
   local PUBLIC_KEY
   PUBLIC_KEY=$(echo "$KEY_RESPONSE" | jq -r '.key')
 
+  if [ -z "$KEY_ID" ] || [ "$KEY_ID" = "null" ]; then
+    warn "No se pudo obtener la public key del repo. Verifica tu token de GitHub."
+    return 1
+  fi
 
-  # Cifrar el secret con la public key del repo usando Python
+  # Cifrar el secret pasando el valor por variable de entorno (evita problemas con caracteres especiales)
   local ENCRYPTED
-  ENCRYPTED=$(python3 -c "
-import base64, sys
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-import nacl.public, nacl.encoding
-
-public_key_bytes = base64.b64decode('$PUBLIC_KEY')
-public_key = nacl.public.PublicKey(public_key_bytes)
+  ENCRYPTED=$(SECRET_TO_ENCRYPT="$SECRET_VALUE" PUBLIC_KEY_B64="$PUBLIC_KEY" python3 -c "
+import base64, os, nacl.public
+public_key = nacl.public.PublicKey(base64.b64decode(os.environ['PUBLIC_KEY_B64']))
 sealed_box = nacl.public.SealedBox(public_key)
-encrypted = sealed_box.encrypt('$SECRET_VALUE'.encode())
+secret = os.environ['SECRET_TO_ENCRYPT'].encode()
+encrypted = sealed_box.encrypt(secret)
 print(base64.b64encode(encrypted).decode())
 " 2>/dev/null)
 
   if [ -z "$ENCRYPTED" ]; then
-    # Fallback: instalar pynacl si no está
-    pip3 install pynacl --quiet 2>/dev/null
-    ENCRYPTED=$(python3 -c "
-import base64, nacl.public, nacl.encoding
-public_key = nacl.public.PublicKey(base64.b64decode('$PUBLIC_KEY'))
-sealed_box = nacl.public.SealedBox(public_key)
-encrypted = sealed_box.encrypt('$SECRET_VALUE'.encode())
-print(base64.b64encode(encrypted).decode())
-")
+    warn "No se pudo cifrar el secret $SECRET_NAME. Verifica que pynacl esté instalado."
+    return 1
   fi
 
   # Subir el secret cifrado
@@ -417,7 +412,7 @@ print(base64.b64encode(encrypted).decode())
   if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "204" ]; then
     success "Secret $SECRET_NAME configurado"
   else
-    warn "No se pudo configurar $SECRET_NAME (HTTP $HTTP_CODE) — configúralo manualmente en GitHub"
+    warn "No se pudo configurar $SECRET_NAME (HTTP $HTTP_CODE)"
   fi
 }
 
@@ -425,7 +420,8 @@ info "Configurando secrets en $GH_USER/$GH_REPO..."
 echo ""
 
 # Leer la clave privada SSH
-SSH_PRIVATE_KEY=$(cat "${DEFAULT_KEY}" | base64 -w 0)
+#SSH_PRIVATE_KEY=$(cat #${DEFAULT_KEY}" | base64 -w 0)
+SSH_PRIVATE_KEY=$(cat "${DEFAULT_KEY}")
 
 set_github_secret "DOCKERHUB_USERNAME" "$DH_USER"         || true
 set_github_secret "DOCKERHUB_TOKEN"    "$DH_TOKEN"        || true
