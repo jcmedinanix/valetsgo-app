@@ -32,14 +32,13 @@ resource "oci_core_route_table" "valetsgo_rt" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.valetsgo_vcn.id
   display_name   = "valetsgo-rt"
-
   route_rules {
     destination       = "0.0.0.0/0"
     network_entity_id = oci_core_internet_gateway.valetsgo_igw.id
   }
 }
 
-# Lista de seguridad (puertos 22, 80, 443, 3001)
+# Lista de seguridad (puertos 22, 80, 443, 3001, 4000)
 resource "oci_core_security_list" "valetsgo_sl" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.valetsgo_vcn.id
@@ -49,41 +48,30 @@ resource "oci_core_security_list" "valetsgo_sl" {
     destination = "0.0.0.0/0"
     protocol    = "all"
   }
-
-  ingress_security_rules {
-    protocol = "6" # TCP
-    source   = "0.0.0.0/0"
-    tcp_options {
-      min = 22
-      max = 22
-    }
-  }
-
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options {
-      min = 80
-      max = 80
-    }
+    tcp_options { min = 22   max = 22   }
   }
-
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options {
-      min = 443
-      max = 443
-    }
+    tcp_options { min = 80   max = 80   }
   }
-
   ingress_security_rules {
     protocol = "6"
     source   = "0.0.0.0/0"
-    tcp_options {
-      min = 3001
-      max = 3001
-    }
+    tcp_options { min = 443  max = 443  }
+  }
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options { min = 3001 max = 3001 }
+  }
+  ingress_security_rules {
+    protocol = "6"
+    source   = "0.0.0.0/0"
+    tcp_options { min = 4000 max = 4000 }
   }
 }
 
@@ -98,23 +86,25 @@ resource "oci_core_subnet" "valetsgo_subnet" {
   security_list_ids = [oci_core_security_list.valetsgo_sl.id]
 }
 
-# Instancia VM (Free Tier: VM.Standard.E2.1.Micro)
+# Instancia VM — shape y disco configurables desde el wizard
 resource "oci_core_instance" "valetsgo_vm" {
   compartment_id      = var.compartment_id
   availability_domain = var.availability_domain
-  shape = "VM.Standard.E2.1.Micro"
-  #shape = "VM.Standard.A1.Flex"
-
-  #shape_config {
-  #  ocpus         = var.instance_ocpus
-  #  memory_in_gbs = var.instance_memory_gb
-  #}
-
+  shape               = var.instance_shape
   display_name        = "valetsgo-server"
 
+  dynamic "shape_config" {
+    for_each = can(regex("Flex", var.instance_shape)) ? [1] : []
+    content {
+      ocpus         = var.instance_ocpus
+      memory_in_gbs = var.instance_memory_gb
+    }
+  }
+
   source_details {
-    source_type = "image"
-    source_id   = var.image_id
+    source_type             = "image"
+    source_id               = var.image_id
+    boot_volume_size_in_gbs = var.boot_volume_size_gb
   }
 
   create_vnic_details {

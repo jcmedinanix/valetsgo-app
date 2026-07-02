@@ -23,18 +23,31 @@ variable "image_id" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Ruta a mi clave SSH pública de VALETSGO"
+  description = "Ruta a la clave SSH pública"
   type        = string
   default     = "~/.ssh/valetsgo_key.pub"
 }
+
+variable "instance_shape" {
+  description = "Shape de la instancia (default: Always Free)"
+  type        = string
+  default     = "VM.Standard.E2.1.Micro"
+}
+
 variable "instance_ocpus" {
-  description = "Número de OCPUs para la instancia"
+  description = "Número de OCPUs (solo para shapes Flex)"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "instance_memory_gb" {
-  description = "Memoria RAM en GB"
+  description = "Memoria RAM en GB (solo para shapes Flex)"
   type        = number
-  default     = 4
+  default     = 1
+}
+
+variable "boot_volume_size_gb" {
+  description = "Tamaño del disco de arranque en GB"
+  type        = number
+  default     = 47
 }

@@ -136,24 +136,77 @@ TFVARS_FILE="$TF_DIR/terraform.tfvars"
 
 case $CLOUD in
 
-  # --- OCI ---
+# --- OCI ---
   oci)
     echo ""
     echo "  Para obtener estos datos en OCI:"
     echo "  → Compartment ID: Menú → Identity → Compartments → copia el OCID"
     echo "  → Availability Domain: Menú → Compute → Instances → Create Instance"
-    echo "  → Image ID: al crear instancia, elige Ubuntu 22.04 y copia el OCID"
     echo "  → Región: revisa la URL de tu consola OCI (ej: sa-saopaulo-1)"
     echo ""
-
     ask "Región OCI (ej: sa-saopaulo-1):"
     read -r OCI_REGION
+
     ask "Compartment ID (ocid1.tenancy.oc1..xxx):"
     read -r OCI_COMPARTMENT
+
     ask "Availability Domain (ej: XkLi:SA-SAOPAULO-1-AD-1):"
     read -r OCI_AD
+
     ask "Image ID Ubuntu 22.04 para tu región (ocid1.image.oc1...):"
     read -r OCI_IMAGE
+
+    echo ""
+    echo -e "${CYAN}══════════════════════════════════════════════${NC}"
+    echo "  Configuración del servidor:"
+    echo "  1) Always Free — VM.Standard.E2.1.Micro (1 OCPU, 1 GB RAM, 47 GB disco) SIN COSTO"
+    echo "  2) Always Free — VM.Standard.A1.Flex    (2 OCPU, 4 GB RAM, 47 GB disco) SIN COSTO"
+    echo "  3) Personalizado                         (shape, RAM y disco a medida)   CON COSTO"
+    echo -e "${CYAN}══════════════════════════════════════════════${NC}"
+    ask "Elige el tipo de servidor [1-3] (Enter = opción 1 gratuita):"
+    read -r SERVER_TYPE
+    SERVER_TYPE=${SERVER_TYPE:-1}
+
+    case $SERVER_TYPE in
+      1)
+        OCI_SHAPE="VM.Standard.E2.1.Micro"
+        OCI_OCPUS=1
+        OCI_MEMORY=1
+        OCI_DISK=47
+        success "Servidor: VM.Standard.E2.1.Micro — Always Free"
+        ;;
+      2)
+        OCI_SHAPE="VM.Standard.A1.Flex"
+        OCI_OCPUS=2
+        OCI_MEMORY=4
+        OCI_DISK=47
+        success "Servidor: VM.Standard.A1.Flex — Always Free"
+        ;;
+      3)
+        echo ""
+        echo "  Shapes disponibles en OCI (con costo):"
+        echo "  → VM.Standard.E4.Flex  (hasta 64 OCPU, 1 TB RAM)"
+        echo "  → VM.Standard.E5.Flex  (hasta 94 OCPU, 1.4 TB RAM)"
+        echo "  → VM.Standard3.Flex    (hasta 32 OCPU, 512 GB RAM)"
+        echo ""
+        ask "Shape (ej: VM.Standard.E4.Flex):"
+        read -r OCI_SHAPE
+        ask "Número de OCPUs (ej: 8):"
+        read -r OCI_OCPUS
+        ask "Memoria RAM en GB (ej: 32):"
+        read -r OCI_MEMORY
+        ask "Tamaño del disco en GB (ej: 500):"
+        read -r OCI_DISK
+        warn "Este servidor generará costos en tu cuenta OCI."
+        ;;
+      *)
+        OCI_SHAPE="VM.Standard.E2.1.Micro"
+        OCI_OCPUS=1
+        OCI_MEMORY=1
+        OCI_DISK=47
+        warn "Opción inválida. Usando VM.Standard.E2.1.Micro gratuito por defecto."
+        ;;
+    esac
 
     cat > "$TFVARS_FILE" << EOF
 region              = "$OCI_REGION"
@@ -161,9 +214,12 @@ compartment_id      = "$OCI_COMPARTMENT"
 availability_domain = "$OCI_AD"
 image_id            = "$OCI_IMAGE"
 ssh_public_key_path = "$SSH_KEY_PATH"
+instance_shape      = "$OCI_SHAPE"
+instance_ocpus      = $OCI_OCPUS
+instance_memory_gb  = $OCI_MEMORY
+boot_volume_size_gb = $OCI_DISK
 EOF
     ;;
-
   # --- AWS ---
   aws)
     echo ""
