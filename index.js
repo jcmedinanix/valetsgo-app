@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const VERSION = process.env.APP_VERSION || '1.11.0';
+const VERSION = process.env.APP_VERSION || '1.12.0';
 
 app.get('/', (req, res) => {
   res.send(`
@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
       <div class="container">
         <div class="logo">ValetsGo</div>
         <div class="subtitle">S.A.C. — Chiclayo, Perú</div>
-        <div class="badge">🚀 Arquitectura DevOps — Tesis USAT 2026</div>
+        <div class="badge">🚀 Arquitectura DevOps — Tesis USAT 2026 Version</div>
         <div class="info-grid">
           <div class="info-card">
             <div class="info-label">Versión</div>
